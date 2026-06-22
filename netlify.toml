@@ -1,0 +1,16 @@
+# Конфигурация деплоя на Netlify (Next.js SSR).
+# Для демо без отдельной БД используется встроенный SQLite-файл (только чтение).
+
+[build]
+  command = "npm run build"
+
+[functions]
+  # Бандлим SQLite-файл и движок Prisma в серверless-функции, иначе чтение БД упадёт
+  included_files = [
+    "prisma/dev.db",
+    "node_modules/.prisma/client/**",
+    "node_modules/@prisma/client/**",
+  ]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

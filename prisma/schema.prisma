@@ -1,0 +1,108 @@
+// KYRGYZ PROKAT — модель данных (см. ТЗ раздел 10.3)
+// Сущности: Category, Equipment (Позиция), Unit (Экземпляр), Client, Rental, User, Setting
+
+generator client {
+  provider      = "prisma-client-js"
+  // native — для локали; rhel-openssl-3.0.x — для рантайма Netlify/Linux
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Системный пользователь: менеджер или администратор
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  password   String // bcrypt-хеш
+  name       String
+  role       String // "ADMIN" | "MANAGER"
+  active     Boolean  @default(true) // отключённый аккаунт не может войти
+  deviceId   String? // привязанное устройство (1 аккаунт = 1 устройство); пусто = ещё не привязан
+  createdAt  DateTime @default(now())
+  rentals    Rental[] @relation("RentalCreatedBy")
+}
+
+// Категория каталога
+model Category {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  slug      String      @unique
+  equipment Equipment[]
+}
+
+// Позиция оборудования (модель)
+model Equipment {
+  id           Int      @id @default(autoincrement())
+  name         String
+  slug         String   @unique
+  description  String?
+  photo        String?
+  pricePerDay  Int // цена за сутки, сом
+  pricePerWeek Int // цена за неделю, сом
+  baseDeposit  Int // базовый залог для нового клиента
+  categoryId   Int
+  category     Category @relation(fields: [categoryId], references: [id])
+  units        Unit[]
+  createdAt    DateTime @default(now())
+}
+
+// Экземпляр оборудования (конкретный физический предмет)
+model Unit {
+  id          Int       @id @default(autoincrement())
+  equipmentId Int
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  inventoryNo String? // инвентарный номер
+  status      String    @default("FREE") // FREE, BOOKED, RENTED, OVERDUE, SERVICE, RETIRED
+  rentals     Rental[]
+}
+
+// Клиент проката
+model Client {
+  id          Int       @id @default(autoincrement())
+  name        String
+  phone       String    @unique // основной идентификатор
+  address     String?
+  score       Int       @default(0) // балл рейтинга (см. ТЗ 5.1)
+  blacklisted Boolean   @default(false)
+  manualLevel String? // ручное переопределение уровня, если задано
+  consent     Boolean   @default(false) // согласие на обработку ПДн
+  consentAt   DateTime?
+  notes       String? // заметки менеджера
+  createdAt   DateTime  @default(now())
+  rentals     Rental[]
+}
+
+// Аренда
+model Rental {
+  id                Int       @id @default(autoincrement())
+  clientId          Int
+  client            Client    @relation(fields: [clientId], references: [id])
+  unitId            Int
+  unit              Unit      @relation(fields: [unitId], references: [id])
+  status            String    @default("ISSUED") // BOOKED, ISSUED, OVERDUE, CLOSED, CANCELLED
+  startDate         DateTime  @default(now())
+  dueDate           DateTime
+  returnedAt        DateTime?
+  rentalCost        Int       @default(0) // стоимость аренды
+  deposit           Int       @default(0) // удержанный залог
+  depositReturned   Int? // возвращено залога при закрытии
+  fine              Int       @default(0) // штраф (просрочка/повреждение)
+  conditionOnReturn String? // OK, DAMAGE, OVERDUE
+  createdById       Int?
+  createdBy         User?     @relation("RentalCreatedBy", fields: [createdById], references: [id])
+  createdAt         DateTime  @default(now())
+}
+
+// Правила аренды (одна строка настроек, см. ТЗ раздел 9)
+model Setting {
+  id                Int   @id @default(1)
+  minRentalDays     Int   @default(1)
+  finePerDay        Int   @default(0) // штраф за день просрочки, сом
+  weekThresholdDays Int   @default(7) // с какого срока применяется недельный тариф
+  depositVerified   Float @default(0.5) // коэффициент залога: 🟢 Проверенный
+  depositRegular    Float @default(0.0) // коэффициент залога: ⭐ Постоянный
+  depositBlacklist  Float @default(1.0) // коэффициент залога: 🔴 Чёрный список
+}

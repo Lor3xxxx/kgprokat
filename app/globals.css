@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  /* Шрифты */
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
+
+  /* Палитра «индустриальный люкс» */
+  --color-ink: #131316;
+  --color-ink-2: #1c1c21;
+  --color-brand: #e4121f;
+  --color-brand-dark: #a50e18;
+  --color-paper: #f6f4f0;
+  --color-line: #e7e3dc;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Заголовки — сжатый дисплейный шрифт */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Надзаголовок-кикер */
+.kicker {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+
+/* Тёмный фон героя: глубокий чёрный + красное свечение + тонкая сетка */
+.hero-bg {
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(60% 120% at 85% 0%, rgba(228, 18, 31, 0.35), transparent 60%),
+    radial-gradient(40% 80% at 0% 100%, rgba(228, 18, 31, 0.12), transparent 70%),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+}
+
+/* Зернистость поверх тёмных секций — даёт «дорогую» фактуру */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Плавное появление с задержкой (для героя) */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Бегущая строка-тикер */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Появление при прокрутке (CSS scroll-driven). Только там, где поддерживается —
+   иначе элемент остаётся видимым (без скрытия). */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+/* Выделение текста — фирменный красный */
+::selection {
+  background: var(--color-brand);
+  color: #fff;
+}
+
+/* Уважение к настройке «меньше движения» */
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .marquee-track,
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
