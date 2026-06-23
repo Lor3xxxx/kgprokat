@@ -2,15 +2,11 @@
 // Сущности: Category, Equipment (Позиция), Unit (Экземпляр), Client, Rental, User, Setting
 
 generator client {
-  provider      = "prisma-client-js"
-  // native — для локали; rhel-openssl-3.0.x — для рантайма Netlify/Linux
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  // Для генерации/сборки достаточно DATABASE_URL; в рантайме реальную строку
-  // (NETLIFY_DATABASE_URL) подставляет lib/db.ts.
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
