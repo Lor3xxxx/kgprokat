@@ -4,7 +4,7 @@
 
 [build]
   # 1) генерируем клиент 2) создаём схему в Postgres 3) заливаем данные (идемпотентно) 4) собираем
-  command = "prisma generate && npx prisma db push --accept-data-loss --skip-generate && npx tsx prisma/seed-prod.ts && next build --webpack"
+  command = "prisma generate && next build --webpack"
 
 [functions]
   # Движок Prisma нужен внутри серверless-функции

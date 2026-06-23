@@ -9,8 +9,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Netlify DB подставляет строку подключения в NETLIFY_DATABASE_URL
-  url      = env("NETLIFY_DATABASE_URL")
+  // Для генерации/сборки достаточно DATABASE_URL; в рантайме реальную строку
+  // (NETLIFY_DATABASE_URL) подставляет lib/db.ts.
+  url      = env("DATABASE_URL")
 }
 
 // Системный пользователь: менеджер или администратор
