@@ -25,6 +25,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  // Диагностика: какие переменные с БД доступны в рантайме
+  if (req.nextUrl.searchParams.get("debug") === "1") {
+    const keys = Object.keys(process.env).filter((k) => /DATABASE|NEON|POSTGRES|PG/i.test(k));
+    return NextResponse.json({ dbEnvKeys: keys });
+  }
+
   try {
     // Уже заполнено?
     try {
